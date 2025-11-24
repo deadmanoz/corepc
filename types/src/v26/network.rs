@@ -157,4 +157,15 @@ pub struct PeerInfo {
     /// The session ID for this connection, or "" if there is none ("v2" transport protocol only).
     /// v26 and later only.
     pub session_id: String,
+
+    // Patched for peer-observer rpc-extractor:
+
+    /// From https://github.com/bitcoin/bitcoin/pull/33448:
+    /// How many txs we have queued to announce to this peer
+    pub inv_to_send: Option<usize>,
+    /// From https://github.com/bitcoin/bitcoin/pull/31672:
+    /// Total CPU time spent processing messages to/from the peer, in per milles (‰) of the connection duration,
+    /// if supported by the platform and measured. High CPU time is not necessarily a bad thing - new valid
+    /// transactions and blocks require it be validated.
+    pub cpu_load: Option<f32>,
 }
