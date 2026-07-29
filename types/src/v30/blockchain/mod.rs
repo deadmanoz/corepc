@@ -51,9 +51,59 @@ pub struct GetMempoolInfo {
     #[serde(rename = "fullrbf")]
     pub full_rbf: bool,
     /// True if the mempool accepts transactions with bare multisig outputs.
+    ///
+    /// Returned by Bitcoin Core v30; absent on Bitcoin Knots (v29.x).
     #[serde(rename = "permitbaremultisig")]
-    pub permit_bare_multisig: bool,
+    pub permit_bare_multisig: Option<bool>,
     /// Maximum number of bytes that can be used by OP_RETURN outputs in the mempool.
+    ///
+    /// Returned by Bitcoin Core v30; absent on Bitcoin Knots (v29.x).
     #[serde(rename = "maxdatacarriersize")]
-    pub max_data_carrier_size: u64,
+    pub max_data_carrier_size: Option<u64>,
+    /// Minimum fee rate floor in BTC/kvB for dust outputs.
+    ///
+    /// Bitcoin Knots only.
+    #[serde(rename = "dustrelayfeefloor")]
+    pub dust_relay_fee_floor: Option<f64>,
+    /// Dynamic dust fee rate configuration (e.g. "off", "target:N", "mempool:N").
+    ///
+    /// Bitcoin Knots only.
+    #[serde(rename = "dustdynamic")]
+    pub dust_dynamic: Option<String>,
+    /// Transaction replacement policy (e.g. "always", "opt-in", "never").
+    ///
+    /// Bitcoin Knots only.
+    pub rbf_policy: Option<String>,
+    /// Policy for TRUC (v3) transactions (e.g. "accept", "reject", "enforce").
+    ///
+    /// Bitcoin Knots only.
+    pub truc_policy: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GetMempoolInfo;
+
+    // Captured from Bitcoin Knots v29.3 (no permitbaremultisig/maxdatacarriersize,
+    // extra dust/rbf/truc policy fields).
+    #[test]
+    fn deserialize_get_mempool_info_knots() {
+        let json = r#"{"loaded":true,"size":2706,"bytes":799688,"usage":5006432,"total_fee":0.01656274,"maxmempool":300000000,"mempoolminfee":0.00001000,"minrelaytxfee":0.00001000,"incrementalrelayfee":0.00001000,"dustrelayfee":0.00003000,"dustrelayfeefloor":0.00003000,"dustdynamic":"off","unbroadcastcount":0,"fullrbf":true,"rbf_policy":"always","truc_policy":"accept"}"#;
+        let info: GetMempoolInfo = serde_json::from_str(json).expect("knots response");
+        assert_eq!(info.permit_bare_multisig, None);
+        assert_eq!(info.max_data_carrier_size, None);
+        assert_eq!(info.dust_relay_fee_floor, Some(0.00003));
+        assert_eq!(info.dust_dynamic.as_deref(), Some("off"));
+        assert_eq!(info.rbf_policy.as_deref(), Some("always"));
+        assert_eq!(info.truc_policy.as_deref(), Some("accept"));
+    }
+
+    #[test]
+    fn deserialize_get_mempool_info_core_v30() {
+        let json = r#"{"loaded":true,"size":1,"bytes":100,"usage":1000,"total_fee":0.00000100,"maxmempool":300000000,"mempoolminfee":0.00001000,"minrelaytxfee":0.00001000,"incrementalrelayfee":0.00001000,"unbroadcastcount":0,"fullrbf":true,"permitbaremultisig":true,"maxdatacarriersize":100000}"#;
+        let info: GetMempoolInfo = serde_json::from_str(json).expect("core v30 response");
+        assert_eq!(info.permit_bare_multisig, Some(true));
+        assert_eq!(info.max_data_carrier_size, Some(100000));
+        assert_eq!(info.rbf_policy, None);
+    }
 }
