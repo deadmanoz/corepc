@@ -60,6 +60,13 @@ pub struct GetMempoolInfo {
     /// Returned by Bitcoin Core v30; absent on Bitcoin Knots (v29.x).
     #[serde(rename = "maxdatacarriersize")]
     pub max_data_carrier_size: Option<u64>,
+    /// Effective minimum fee rate in BTC/kvB for dust outputs.
+    ///
+    /// Diverges from `dustrelayfeefloor` when `dustdynamic` is enabled.
+    ///
+    /// Bitcoin Knots only.
+    #[serde(rename = "dustrelayfee")]
+    pub dust_relay_fee: Option<f64>,
     /// Minimum fee rate floor in BTC/kvB for dust outputs.
     ///
     /// Bitcoin Knots only.
@@ -92,6 +99,7 @@ mod tests {
         let info: GetMempoolInfo = serde_json::from_str(json).expect("knots response");
         assert_eq!(info.permit_bare_multisig, None);
         assert_eq!(info.max_data_carrier_size, None);
+        assert_eq!(info.dust_relay_fee, Some(0.00003));
         assert_eq!(info.dust_relay_fee_floor, Some(0.00003));
         assert_eq!(info.dust_dynamic.as_deref(), Some("off"));
         assert_eq!(info.rbf_policy.as_deref(), Some("always"));
