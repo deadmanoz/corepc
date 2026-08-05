@@ -1,3 +1,7 @@
+# Unreleased
+
+- Raise the synchronous client's HTTP transport timeout to 30 seconds.
+
 # 0.8.0 2025-05-21
 
 - Add support for Bitcoin Core 29.0 [#131](https://github.com/rust-bitcoin/corepc/pull/131)
@@ -55,4 +59,3 @@
 # 0.1.0 - 2024-06-13
 
 Initial release.
-
